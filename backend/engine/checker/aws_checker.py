@@ -451,60 +451,17 @@ if __name__ == "__main__":
 
     from engine.loader import load_policies
 
-    # ── Option A: test against mock data (no AWS needed) ──────────────
-    mock_resources = [
-        {
-            # This bucket PASSES all checks — fully hardened
-            "resource_type":    "s3_bucket",
-            "resource_id":      "my-secure-bucket",
-            "resource_name":    "my-secure-bucket",
-            "region":           "global",
-            "encryption":       {
-                "Rules": [{
-                    "ApplyServerSideEncryptionByDefault": {
-                        "SSEAlgorithm": "AES256"
-                    }
-                }]
-            },
-            "public_access_block": {
-                "BlockPublicAcls":       True,
-                "IgnorePublicAcls":      True,
-                "BlockPublicPolicy":     True,
-                "RestrictPublicBuckets": True,
-            },
-            "versioning": {"Status": "Enabled"},
-            "logging":    {"TargetBucket": "my-log-bucket"},
-            "tags":       [{"Key": "Environment", "Value": "prod"}],
-        },
-        {
-            # This bucket FAILS multiple checks — misconfigured
-            "resource_type":    "s3_bucket",
-            "resource_id":      "my-exposed-bucket",
-            "resource_name":    "my-exposed-bucket",
-            "region":           "global",
-            "encryption":       None,           # FAIL: no encryption
-            "public_access_block": {
-                "BlockPublicAcls":       False,  # FAIL
-                "IgnorePublicAcls":      False,  # FAIL
-                "BlockPublicPolicy":     False,  # FAIL
-                "RestrictPublicBuckets": False,  # FAIL
-            },
-            "versioning": {},                   # FAIL: no versioning
-            "logging":    None,                 # FAIL: no logging
-            "tags":       [],                   # FAIL: no tags
-        },
-    ]
-
-    # ── Option B: use real AWS data ────────────────────────────────────
+  
+    #  real AWS data ────────────────────────────────────
     use_real_aws = "--real" in sys.argv
     if use_real_aws:
         print("Fetching real resources from AWS...\n")
-        from scanners.aws_collector import collect_all
+        from scanners.AWS.aws_scanner import collect_all
         raw = collect_all()
         resources_input = raw   # run_checks handles nested dict
     else:
-        print("Using mock resources (run with --real to use live AWS data)\n")
-        resources_input = mock_resources
+        print("No real AWS data is available\n")
+        
 
     # Load rules and run checks
     rules    = load_policies()

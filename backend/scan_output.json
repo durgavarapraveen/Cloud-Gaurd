@@ -4,11 +4,52 @@
     "regions": [
       "ap-south-1"
     ],
-    "scanned_at": "2026-04-04T09:38:06.289095+00:00",
+    "scanned_at": "2026-04-04T14:26:07.770408+00:00",
     "scanner": "CloudGuard v0.1"
   },
   "resources": {
     "s3": [
+      {
+        "resource_type": "s3_bucket",
+        "resource_id": "amzn-testing-bucket-1",
+        "resource_name": "amzn-testing-bucket-1",
+        "region": "global",
+        "encryption": null,
+        "versioning": {
+          "ResponseMetadata": {
+            "RequestId": "F3FZ2KXKY9QYJBMT",
+            "HostId": "qwWsuJ9ueuo/UCigHnkVc8Z7q5/uEMn0EMmMPDbLl9iNrC4UdhGLVaSGDAYjzcE/Xx/PtlKSH4o=",
+            "HTTPStatusCode": 200,
+            "HTTPHeaders": {
+              "x-amz-id-2": "qwWsuJ9ueuo/UCigHnkVc8Z7q5/uEMn0EMmMPDbLl9iNrC4UdhGLVaSGDAYjzcE/Xx/PtlKSH4o=",
+              "x-amz-request-id": "F3FZ2KXKY9QYJBMT",
+              "date": "Sat, 04 Apr 2026 14:26:03 GMT",
+              "transfer-encoding": "chunked",
+              "server": "AmazonS3"
+            },
+            "RetryAttempts": 0
+          },
+          "Status": "Enabled"
+        },
+        "public_access_block": {
+          "BlockPublicAcls": true,
+          "IgnorePublicAcls": true,
+          "BlockPublicPolicy": true,
+          "RestrictPublicBuckets": true
+        },
+        "logging": null,
+        "acl": [
+          {
+            "Grantee": {
+              "ID": "c9f6ee7debaa080cfa9845a5a5ba2809fe7c3b1fd23822bb2367e7f0594e9767",
+              "Type": "CanonicalUser"
+            },
+            "Permission": "FULL_CONTROL"
+          }
+        ],
+        "tags": [],
+        "lifecycle": []
+      },
       {
         "resource_type": "s3_bucket",
         "resource_id": "ecommerce-assets-dev-058098a1",
@@ -17,13 +58,13 @@
         "encryption": null,
         "versioning": {
           "ResponseMetadata": {
-            "RequestId": "5CFVW98W5E19TAKQ",
-            "HostId": "CTZkNoPJU628la0M7tEx4lmIBAuIpayKA4jRmXwMccz9Aq62l0TO7sRuq4trYWMuKfksnTncFKw=",
+            "RequestId": "AAXM6QZEKHK2WF1F",
+            "HostId": "pK2hsr2lOQMrwYHu0o2uRXCHqZaHdABjzjY+rtq278wJEzAfnjzkp6bqMLb2Serx5eISv2xJpL/rdU14+dr12bAhkatYaRLN",
             "HTTPStatusCode": 200,
             "HTTPHeaders": {
-              "x-amz-id-2": "CTZkNoPJU628la0M7tEx4lmIBAuIpayKA4jRmXwMccz9Aq62l0TO7sRuq4trYWMuKfksnTncFKw=",
-              "x-amz-request-id": "5CFVW98W5E19TAKQ",
-              "date": "Sat, 04 Apr 2026 09:38:01 GMT",
+              "x-amz-id-2": "pK2hsr2lOQMrwYHu0o2uRXCHqZaHdABjzjY+rtq278wJEzAfnjzkp6bqMLb2Serx5eISv2xJpL/rdU14+dr12bAhkatYaRLN",
+              "x-amz-request-id": "AAXM6QZEKHK2WF1F",
+              "date": "Sat, 04 Apr 2026 14:26:05 GMT",
               "transfer-encoding": "chunked",
               "server": "AmazonS3"
             },
@@ -488,17 +529,15 @@
         ]
       }
     ],
-    "rds": [],
-    "cloudtrail": []
+    "rds": []
   },
   "summary": {
-    "total_resources": 15,
+    "total_resources": 16,
     "by_service": {
-      "s3": 1,
+      "s3": 2,
       "iam": 9,
       "ec2": 5,
-      "rds": 0,
-      "cloudtrail": 0
+      "rds": 0
     }
   }
 }

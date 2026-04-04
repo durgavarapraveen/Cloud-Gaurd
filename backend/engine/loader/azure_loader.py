@@ -1,4 +1,4 @@
-import os
+
 import yaml
 import logging
 from pathlib import Path
@@ -111,7 +111,7 @@ def load_policies(policies_dir=None):
     if policies_dir is None:
         # Default: resolve relative to this file's location
         # backend/engine/loader.py  →  backend/policies/
-        policies_dir = Path(__file__).parent.parent.parent / "policies/aws"
+        policies_dir = Path(__file__).parent.parent.parent / "policies/azure"
 
     policies_dir = Path(policies_dir)
 

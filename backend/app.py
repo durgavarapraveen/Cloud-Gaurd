@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from scanners.AWS.aws_scanner import collect_all
-from engine.loader.aws_loader import load_policies, summarise_policies
+from backend.engine.loader.aws_loader import load_policies, summarise_policies
 from engine.checker.aws_checker import run_checks, Status
 
 # ──────────────────────────────────────────────

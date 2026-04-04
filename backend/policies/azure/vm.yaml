@@ -1,0 +1,210 @@
+# ──────────────────────────────────────────────────────────────
+#  CloudGuard — Azure VM Policy Rules
+#  Source : CIS Microsoft Azure Foundations Benchmark v2.0
+#  Service: Azure Virtual Machines
+# ──────────────────────────────────────────────────────────────
+
+rules:
+
+  # ────────────────────────────────────────────
+  #  NETWORK SECURITY
+  # ────────────────────────────────────────────
+
+  - id: CIS-AZURE-VM-01
+    title: "VM must not allow SSH from 0.0.0.0/0"
+    description: >
+      Allowing SSH access from any IP increases risk of brute force attacks.
+      Access should be restricted to trusted IP ranges.
+    severity: CRITICAL
+    service: azure_vm
+    resource_type: virtual_machine
+    cis_reference: "CIS Azure Foundations Benchmark v2.0 — 7.1"
+    check:
+      path: "network_security_group.security_rules"
+      operator: not_contains
+      value: "0.0.0.0/0"
+    remediation: >
+      Azure Portal → Virtual Machines → Networking →
+      Modify NSG inbound rules → Restrict SSH access.
+    references:
+      - https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview
+
+
+  - id: CIS-AZURE-VM-02
+    title: "VM must not allow RDP from internet"
+    description: >
+      RDP exposure to internet increases attack risk.
+      Restrict to corporate networks.
+    severity: CRITICAL
+    service: azure_vm
+    resource_type: virtual_machine
+    cis_reference: "CIS Azure Foundations Benchmark v2.0 — 7.2"
+    check:
+      path: "network_security_group.security_rules"
+      operator: not_contains
+      value: "3389"
+    remediation: >
+      Remove open RDP rules and allow only trusted IPs.
+    references:
+      - https://learn.microsoft.com/en-us/azure/virtual-machines/windows/nsg-quickstart
+
+
+  - id: CIS-AZURE-VM-03
+    title: "VM should not have public IP"
+    description: >
+      Public IP increases attack surface.
+      Use private endpoints, Bastion or load balancers.
+    severity: HIGH
+    service: azure_vm
+    resource_type: virtual_machine
+    cis_reference: "CIS Azure Foundations Benchmark v2.0 — 7.3"
+    check:
+      path: "public_ip"
+      operator: not_exists
+    remediation: >
+      Remove public IP from VM NIC configuration.
+    references:
+      - https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/public-ip-addresses
+
+
+  # ────────────────────────────────────────────
+  #  IDENTITY & ACCESS
+  # ────────────────────────────────────────────
+
+  - id: CIS-AZURE-VM-04
+    title: "VM should use Managed Identity"
+    description: >
+      Managed identities eliminate need for stored credentials.
+    severity: HIGH
+    service: azure_vm
+    resource_type: virtual_machine
+    cis_reference: "CIS Azure Foundations Benchmark v2.0 — 8.5"
+    check:
+      path: "identity.type"
+      operator: exists
+    remediation: >
+      Enable system assigned managed identity.
+    references:
+      - https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources
+
+
+  # ────────────────────────────────────────────
+  #  STORAGE SECURITY
+  # ────────────────────────────────────────────
+
+  - id: CIS-AZURE-VM-05
+    title: "OS disk must be encrypted"
+    description: >
+      Disk encryption protects data at rest.
+    severity: HIGH
+    service: azure_vm
+    resource_type: disk
+    cis_reference: "CIS Azure Foundations Benchmark v2.0 — 8.1"
+    check:
+      path: "encryption.enabled"
+      operator: is_true
+    remediation: >
+      Enable Azure Disk Encryption.
+    references:
+      - https://learn.microsoft.com/en-us/azure/virtual-machines/disk-encryption-overview
+
+
+  # ────────────────────────────────────────────
+  #  MONITORING
+  # ────────────────────────────────────────────
+
+  - id: CIS-AZURE-VM-06
+    title: "Boot diagnostics should be enabled"
+    description: >
+      Boot diagnostics helps troubleshoot VM failures.
+    severity: LOW
+    service: azure_vm
+    resource_type: virtual_machine
+    cis_reference: "CIS Azure Foundations Benchmark v2.0 — 5.3"
+    check:
+      path: "diagnostics.boot"
+      operator: is_true
+    remediation: >
+      Enable boot diagnostics in VM settings.
+    references:
+      - https://learn.microsoft.com/en-us/azure/virtual-machines/boot-diagnostics
+
+
+  - id: CIS-AZURE-VM-07
+    title: "Azure Monitor agent should be installed"
+    description: >
+      Monitoring agents improve visibility and threat detection.
+    severity: MEDIUM
+    service: azure_vm
+    resource_type: virtual_machine
+    cis_reference: "CIS Azure Foundations Benchmark v2.0 — 5.4"
+    check:
+      path: "monitoring.agent"
+      operator: exists
+    remediation: >
+      Install Azure Monitor Agent.
+    references:
+      - https://learn.microsoft.com/en-us/azure/azure-monitor/agents/agents-overview
+
+
+  # ────────────────────────────────────────────
+  #  PATCHING
+  # ────────────────────────────────────────────
+
+  - id: CIS-AZURE-VM-08
+    title: "Automatic OS updates should be enabled"
+    description: >
+      Ensures latest security patches are installed.
+    severity: MEDIUM
+    service: azure_vm
+    resource_type: virtual_machine
+    cis_reference: "CIS Azure Foundations Benchmark v2.0 — 8.3"
+    check:
+      path: "os_profile.auto_updates"
+      operator: is_true
+    remediation: >
+      Enable automatic guest patching.
+    references:
+      - https://learn.microsoft.com/en-us/azure/virtual-machines/automatic-vm-guest-patching
+
+
+  # ────────────────────────────────────────────
+  #  BACKUP
+  # ────────────────────────────────────────────
+
+  - id: CIS-AZURE-VM-09
+    title: "VM backup should be enabled"
+    description: >
+      Backups protect against data loss.
+    severity: HIGH
+    service: azure_vm
+    resource_type: virtual_machine
+    cis_reference: "CIS Azure Foundations Benchmark v2.0 — 9.1"
+    check:
+      path: "backup.enabled"
+      operator: is_true
+    remediation: >
+      Configure Azure Backup vault.
+    references:
+      - https://learn.microsoft.com/en-us/azure/backup/backup-overview
+
+
+  # ────────────────────────────────────────────
+  #  DEFENDER
+  # ────────────────────────────────────────────
+
+  - id: CIS-AZURE-VM-10
+    title: "Microsoft Defender should be enabled"
+    description: >
+      Defender provides threat detection for Azure VMs.
+    severity: HIGH
+    service: azure_vm
+    resource_type: virtual_machine
+    cis_reference: "CIS Azure Foundations Benchmark v2.0 — 2.1"
+    check:
+      path: "defender.enabled"
+      operator: is_true
+    remediation: >
+      Enable Microsoft Defender for Servers.
+    references:
+      - https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-servers-introduction
