@@ -222,7 +222,8 @@ def run_check(resource, rule):
     """
     rule_resource_type = rule.get("resource_type")
     actual_resource_type = resource.get("resource_type")
-
+    
+   
     # Skip if this rule does not apply to this resource type
     # e.g. don't run s3_bucket rules against ec2_instance resources
     if rule_resource_type != actual_resource_type:
@@ -232,10 +233,13 @@ def run_check(resource, rule):
     path         = check_block.get("path")
     operator_key = check_block.get("operator")
     expected     = check_block.get("value")  # optional — not all operators need it
+    
+    print(f"Running check {rule.get('id')} against resource {resource.get('resource_id')} with operator {operator_key} and path {path}*********************************************************************88")
 
     # Resolve the path against the resource using JMESPath
     try:
         actual_value = resolve_path(resource, path)
+        print(f"Resolved path {path} to actual value: {actual_value}%%%%%%%%%%%%%%%%%%%%%%%%%%%%5")
     except Exception as e:
         logger.error(
             f"[checker] Path resolution failed — "
@@ -246,11 +250,13 @@ def run_check(resource, rule):
 
     # Look up the operator function
     operator_fn = OPERATOR_MAP.get(operator_key)
+    
     if operator_fn is None:
         logger.error(f"[checker] Unknown operator '{operator_key}' in rule {rule.get('id')}")
         return _make_finding(resource, rule, Status.ERROR, actual_value=actual_value)
 
     # Run the operator — wrap in try/except so one bad resource never crashes the scan
+    print(f"Applying operator {operator_key} with actual value {actual_value} and expected value {expected}###########################################################")
     try:
         passed = operator_fn(actual_value, expected)
     except Exception as e:
@@ -349,7 +355,6 @@ def run_checks(all_resources, all_rules):
             if r.get("resource_type") == resource_type
         ]
         
-        print(f"Running {len(matching_rules)} rules against resource {resource.get('resource_id')} ({resource_type})*********************************************************************88")
 
         for rule in matching_rules:
             finding = run_check(resource, rule)
@@ -515,38 +520,25 @@ async def get_failed_findings(resources=None, rules=None):
 
 
 async def get_findings_by_severity(severity, resources=None, rules=None):
-
     results = await scan_aws_resources(resources, rules)
-
     if not results["success"]:
         return results
-
     findings = results["results"]["findings"]
-
     filtered = [
         f for f in findings
         if f["severity"].lower() == severity.lower()
     ]
-
     return filtered
 
 def flatten_mongo_rules(docs):
-
     rules = []
-
     for doc in docs:
-
         provider = doc.get("provider")
         service = doc.get("service")
-
         yaml_data = doc.get("data", {})
-
         for rule in yaml_data.get("rules", []):
-
             rule["provider"] = provider
             rule["service"] = service
             rule["_source_file"] = f"mongo:{doc['_id']}"
-
             rules.append(rule)
-
     return rules

@@ -20,7 +20,7 @@ class YAMLUploadRequest(BaseModel):
     service: str
     yaml_content: str
 
-@router.post("/upload")
+@router.post("/upload/")
 async def upload_yaml(request: YAMLUploadRequest):
     try:
         document_id = await store_yaml(request.provider, request.service, request.yaml_content)
@@ -60,7 +60,21 @@ async def get_yaml_policy(document_id: str):
 @router.put("/policy/{document_id}")
 async def edit_yaml_policy(document_id: str, request: YAMLUploadRequest):
     try:
-        updated_id = await edit_policy_by_id(document_id, request.provider, request.service, request.yaml_content)
-        return {"message": "Policy updated successfully", "id": updated_id}
+        print("REQUEST:", request)
+        print("YAML:", request.yaml_content[:100])  # first 100 chars
+
+        updated_id = await edit_policy_by_id(
+            document_id,
+            request.provider,
+            request.service,
+            request.yaml_content
+        )
+
+        return {
+            "message": "Policy updated successfully",
+            "id": updated_id
+        }
+
     except Exception as e:
+        print("ERROR:", e)   # ← ADD THIS
         raise HTTPException(status_code=400, detail=str(e))

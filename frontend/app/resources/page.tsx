@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { awsScannerApi } from "@/lib/api";
+import { awsScannerApi, awsApi } from "@/lib/api";
 
 const CLOUD_PROVIDERS = {
   AWS: ["s3", "ec2", "rds", "iam"],
@@ -76,6 +76,23 @@ export default function ResourcesPage() {
 
   const resources: any[] = data?.resources?.[service] ?? [];
 
+  async function downloadExcel() {
+    try {
+      const res = await awsScannerApi.downloadExcel({
+        services: selectedServices["AWS"] ?? ["ALL"],
+      });
+      const url = window.URL.createObjectURL(new Blob([res]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `cloud_resources_${Date.now()}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (e: any) {
+      setError(e.message ?? "Failed to download Excel");
+    }
+  }
+
   return (
     <div className="p-8 space-y-6 relative z-10">
       {/* Header */}
@@ -89,27 +106,35 @@ export default function ResourcesPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => setModalOpen(true)}
-          disabled={loading}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-medium transition-all border
+        <div className="flex row gap-2">
+          <button
+            onClick={downloadExcel}
+            className="px-4 py-2 rounded-lg bg-blue-500/20 text-blue-400"
+          >
+            Download Excel
+          </button>
+          <button
+            onClick={() => setModalOpen(true)}
+            disabled={loading}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-medium transition-all border
             ${
               loading
                 ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-500/50 cursor-not-allowed"
                 : "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
             }`}
-        >
-          {loading ? (
-            <>
-              <span className="w-3 h-3 rounded-full border-2 border-emerald-500/30 border-t-emerald-400 animate-spin" />
-              Fetching…
-            </>
-          ) : data ? (
-            "Refresh"
-          ) : (
-            "Fetch resources"
-          )}
-        </button>
+          >
+            {loading ? (
+              <>
+                <span className="w-3 h-3 rounded-full border-2 border-emerald-500/30 border-t-emerald-400 animate-spin" />
+                Fetching…
+              </>
+            ) : data ? (
+              "Refresh"
+            ) : (
+              "Fetch resources"
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Modern Provider & Service Modal */}

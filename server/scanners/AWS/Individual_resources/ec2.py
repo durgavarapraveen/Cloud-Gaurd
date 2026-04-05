@@ -96,9 +96,11 @@ def scan_ec2(session, region):
                         inst.get("Monitoring", {}).get("State"),
 
                     "launch_time":
-                        inst.get("LaunchTime").isoformat()
-                        if inst.get("LaunchTime")
-                        else None
+                        inst.get("LaunchTime").isoformat() if inst.get("LaunchTime") else None,
+
+                    "imdsv2": 
+                        inst.get("MetadataOptions", {}).get("HttpTokens") == "required"
+                        
                 },
 
                 "tags":

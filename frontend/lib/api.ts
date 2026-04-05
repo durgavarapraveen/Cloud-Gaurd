@@ -230,6 +230,30 @@ export const awsScannerApi = {
     if (!res.ok) throw new Error(`Scanner failed: ${res.statusText}`);
     return res.json();
   },
+
+  downloadExcel: async ({ services }: { services: string[] }): Promise<any> => {
+    if (!services || services.length === 0) {
+      throw new Error("No services selected");
+    }
+    // Convert array to comma-separated string for URL
+    const serviceParam = encodeURIComponent(services.join(","));
+
+    const res = await fetch(`${BASE}/aws/scanner/export/${serviceParam}`);
+    if (!res.ok) throw new Error(`Scanner failed: ${res.statusText}`);
+    const blob = await res.blob();
+
+    const urls = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+
+    a.href = urls;
+
+    a.download = "aws_resources.xlsx";
+
+    a.click();
+
+    return blob;
+  },
 };
 
 // ─── Azure Policies  /azure/policies/* ───────────────────────

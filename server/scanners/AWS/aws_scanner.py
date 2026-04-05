@@ -5,6 +5,11 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 
+import json
+import pandas as pd
+from io import BytesIO
+from fastapi.responses import StreamingResponse
+
 from scanners.AWS.utils import safe_call
 
 # Service scanners
@@ -118,3 +123,103 @@ def collect_all(regions=None, services=None):
 
     # logger.info(f"Scan finished : {total} resources")
     return result
+
+def flatten_value(val):
+    """
+    Converts any value that pandas cannot write to an Excel cell
+    into a plain string.
+ 
+    Rules:
+      - dict  → JSON string   e.g. {"Key": "env"} → '{"Key": "env"}'
+      - list  → JSON string   e.g. ["sg-123"]     → '["sg-123"]'
+      - None  → empty string
+      - bool, int, float, str → left as-is (Excel handles these natively)
+    """
+    if val is None:
+        return ""
+    if isinstance(val, (dict, list)):
+        return json.dumps(val, default=str)
+    return val
+ 
+ 
+def flatten_record(record: dict) -> dict:
+    """
+    Applies flatten_value to every value in a resource dict.
+    Does NOT recurse — AWS resource dicts are one level deep after
+    the scanner runs, so a single pass is enough.
+    """
+    return {k: flatten_value(v) for k, v in record.items()}
+
+
+async def export_resources(regions=None, services=None):
+ 
+    result = collect_all(regions, services)
+ 
+    resources = result["resources"]
+    summary   = result["summary"]
+ 
+    output = BytesIO()
+ 
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+ 
+        # ── Summary sheet ──────────────────────────────────────
+        summary_df = pd.DataFrame(
+            list(summary["by_service"].items()),
+            columns=["Service", "Resource Count"]
+        )
+        summary_df.loc[len(summary_df)] = [
+            "TOTAL",
+            summary["total_resources"]
+        ]
+        summary_df.to_excel(
+            writer,
+            sheet_name="Summary",
+            index=False
+        )
+ 
+        # ── One sheet per service ──────────────────────────────
+        for service, data in resources.items():
+ 
+            if not data:
+                continue
+ 
+            # FIX — flatten every record before passing to DataFrame
+            # This converts dicts/lists in cells to JSON strings
+            flat_data = [flatten_record(record) for record in data]
+ 
+            df = pd.DataFrame(flat_data)
+ 
+            # Reorder important columns first
+            priority_cols = [
+                "resource_id",
+                "resource_name",
+                "region",
+                "resource_type",
+            ]
+            cols = (
+                priority_cols +
+                [c for c in df.columns if c not in priority_cols]
+            )
+            df = df[[c for c in cols if c in df.columns]]
+ 
+            # Excel sheet name max length is 31 chars
+            sheet_name = service.upper()[:31]
+ 
+            df.to_excel(
+                writer,
+                sheet_name=sheet_name,
+                index=False
+            )
+ 
+    output.seek(0)
+ 
+    return StreamingResponse(
+        output,
+        media_type=(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ),
+        headers={
+            "Content-Disposition":
+                "attachment; filename=cloudguard_resources.xlsx"
+        }
+    )
