@@ -52,7 +52,7 @@ def collect_all(regions=None, services=None):
     identity = safe_call(sts.get_caller_identity)
     account_id = identity.get("Account") if identity else "unknown"
 
-    logger.info(f"Scanning account {account_id}")
+    # logger.info(f"Scanning account {account_id}")
 
     tasks = []
 
@@ -116,5 +116,5 @@ def collect_all(regions=None, services=None):
         }
     }
 
-    logger.info(f"Scan finished : {total} resources")
+    # logger.info(f"Scan finished : {total} resources")
     return result

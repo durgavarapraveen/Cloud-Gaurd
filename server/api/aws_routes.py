@@ -20,7 +20,7 @@ router = APIRouter(
 # ──────────────────────────────────────────────
 
 @router.get("/scan")
-def scan_aws(
+async def scan_aws(
 
     regions: Optional[List[str]] = Query(default=None),
 
@@ -30,7 +30,7 @@ def scan_aws(
 
 ):
 
-    return validate_aws(
+    return await validate_aws(
 
         regions=regions,
 
@@ -46,13 +46,13 @@ def scan_aws(
 # ──────────────────────────────────────────────
 
 @router.get("/summary")
-def aws_summary(
+async def aws_summary(
 
     regions: Optional[List[str]] = Query(default=None)
 
 ):
 
-    return get_summary(
+    return await get_summary(
 
         regions=regions
 
@@ -64,13 +64,13 @@ def aws_summary(
 # ──────────────────────────────────────────────
 
 @router.get("/failed")
-def aws_failed(
+async def aws_failed(
 
     regions: Optional[List[str]] = Query(default=None)
 
 ):
 
-    return get_failed_findings(
+    return await get_failed_findings(
 
         regions=regions
 
@@ -82,7 +82,7 @@ def aws_failed(
 # ──────────────────────────────────────────────
 
 @router.get("/severity/{severity}")
-def severity_filter(
+async def severity_filter(
 
     severity: str,
 
@@ -90,7 +90,7 @@ def severity_filter(
 
 ):
 
-    return get_findings_by_severity(
+    return await get_findings_by_severity(
 
         severity=severity,
 
@@ -104,7 +104,7 @@ def severity_filter(
 # ──────────────────────────────────────────────
 
 @router.get("/service/{service}")
-def service_filter(
+async def service_filter(
 
     service: str,
 
@@ -112,7 +112,7 @@ def service_filter(
 
 ):
 
-    return get_findings_by_service(
+    return await get_findings_by_service(
 
         service=service,
 

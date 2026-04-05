@@ -337,6 +337,16 @@ export default function PoliciesPage() {
                                           </div>
                                         </div>
                                       )}
+                                      {rule.resource_type && (
+                                        <div>
+                                          <div className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">
+                                            Resource Type
+                                          </div>
+                                          <div className="text-slate-500 font-mono text-[11px]">
+                                            {rule.resource_type}
+                                          </div>
+                                        </div>
+                                      )}
                                       {rule.cis_reference && (
                                         <div>
                                           <div className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">

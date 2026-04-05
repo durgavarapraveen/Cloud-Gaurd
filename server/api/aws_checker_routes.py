@@ -14,32 +14,31 @@ router = APIRouter(
 
 # Full scan
 @router.get("/scan")
-def scan():
-
-    return scan_aws_resources()
+async def scan():
+    return await scan_aws_resources()
 
 
 # Only summary
 @router.get("/summary")
-def summary():
+async def summary():
 
-    return get_summary()
+    return await get_summary()
 
 
 # Only failed findings
 @router.get("/failed")
-def failed():
+async def failed():
 
     return {
-        "failed_findings": get_failed_findings()
+        "failed_findings": await get_failed_findings()
     }
 
 
 # Filter by severity
 @router.get("/severity/{severity}")
-def by_severity(severity: str):
+async def by_severity(severity: str):
 
     return {
         "severity": severity,
-        "findings": get_findings_by_severity(severity)
+        "findings": await get_findings_by_severity(severity)
     }

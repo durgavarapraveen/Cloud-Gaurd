@@ -2,6 +2,7 @@ import jmespath
 import logging
 from datetime import datetime, timezone
 from enum import Enum
+from yaml_loader.yaml_loader import get_policies
 
 logger = logging.getLogger(__name__)
 
@@ -347,6 +348,8 @@ def run_checks(all_resources, all_rules):
             r for r in all_rules
             if r.get("resource_type") == resource_type
         ]
+        
+        print(f"Running {len(matching_rules)} rules against resource {resource.get('resource_id')} ({resource_type})*********************************************************************88")
 
         for rule in matching_rules:
             finding = run_check(resource, rule)
@@ -359,13 +362,13 @@ def run_checks(all_resources, all_rules):
 
     summary = _build_summary(findings)
 
-    logger.info(
-        f"[checker] Scan complete — "
-        f"{summary['total']} checks | "
-        f"{summary['passed']} passed | "
-        f"{summary['failed']} failed | "
-        f"score: {summary['score']}%"
-    )
+    # logger.info(
+    #     f"[checker] Scan complete — "
+    #     f"{summary['total']} checks | "
+    #     f"{summary['passed']} passed | "
+    #     f"{summary['failed']} failed | "
+    #     f"score: {summary['score']}%"
+    # )
 
     return {"findings": findings, "summary": summary}
 
@@ -393,7 +396,7 @@ def _flatten_resources(resources):
                 flat.extend(service_resources)
         return flat
 
-    logger.warning(f"[checker] Unexpected resources type: {type(resources)}")
+    # logger.warning(f"[checker] Unexpected resources type: {type(resources)}")
     return []
 
 
@@ -437,7 +440,7 @@ def _build_summary(findings):
 #  ENTRY POINT — run directly to test
 # ──────────────────────────────────────────────
 
-def scan_aws_resources(resources=None, rules=None):
+async def scan_aws_resources(resources=None, rules=None):
     """
     Main function for API usage.
     This is what Flask/FastAPI will call.
@@ -462,8 +465,10 @@ def scan_aws_resources(resources=None, rules=None):
             resources = collect_all()
 
         if rules is None:
-            from engine.loader.aws_loader import load_policies
-            rules = load_policies()
+            # rules = load_policies()
+            mongo_docs = await get_policies()
+
+            rules = flatten_mongo_rules(mongo_docs)
 
         results = run_checks(resources, rules)
 
@@ -482,9 +487,9 @@ def scan_aws_resources(resources=None, rules=None):
         }
 
 
-def get_summary(resources=None, rules=None):
+async def get_summary(resources=None, rules=None):
 
-    results = scan_aws_resources(resources, rules)
+    results = await scan_aws_resources(resources, rules)
 
     if not results["success"]:
         return results
@@ -492,9 +497,9 @@ def get_summary(resources=None, rules=None):
     return results["results"]["summary"]
 
 
-def get_failed_findings(resources=None, rules=None):
+async def get_failed_findings(resources=None, rules=None):
 
-    results = scan_aws_resources(resources, rules)
+    results = await scan_aws_resources(resources, rules)
 
     if not results["success"]:
         return results
@@ -509,9 +514,9 @@ def get_failed_findings(resources=None, rules=None):
     return failed
 
 
-def get_findings_by_severity(severity, resources=None, rules=None):
+async def get_findings_by_severity(severity, resources=None, rules=None):
 
-    results = scan_aws_resources(resources, rules)
+    results = await scan_aws_resources(resources, rules)
 
     if not results["success"]:
         return results
@@ -524,3 +529,24 @@ def get_findings_by_severity(severity, resources=None, rules=None):
     ]
 
     return filtered
+
+def flatten_mongo_rules(docs):
+
+    rules = []
+
+    for doc in docs:
+
+        provider = doc.get("provider")
+        service = doc.get("service")
+
+        yaml_data = doc.get("data", {})
+
+        for rule in yaml_data.get("rules", []):
+
+            rule["provider"] = provider
+            rule["service"] = service
+            rule["_source_file"] = f"mongo:{doc['_id']}"
+
+            rules.append(rule)
+
+    return rules

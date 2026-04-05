@@ -15,7 +15,7 @@ async def store_yaml(provider: str, service: str, yaml_content: str):
         "provider": provider,
         "service": service,
         "data": data,
-    }
+    }   
     
 
     result = await db["resources"].insert_one(document)

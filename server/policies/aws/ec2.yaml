@@ -5,7 +5,6 @@
 # ──────────────────────────────────────────────────────────────
 
 rules:
-
   # ────────────────────────────────────────────
   #  SECURITY GROUPS
   # ────────────────────────────────────────────
@@ -47,7 +46,6 @@ rules:
     references:
       - https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html
 
-
   # ────────────────────────────────────────────
   #  INSTANCE SECURITY
   # ────────────────────────────────────────────
@@ -70,7 +68,6 @@ rules:
     references:
       - https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html
 
-
   - id: CIS-EC2-04
     title: "EC2 instance must use IAM role"
     description: >
@@ -87,7 +84,6 @@ rules:
       Attach IAM role to EC2 instance.
     references:
       - https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2.html
-
 
   # ────────────────────────────────────────────
   #  STORAGE
@@ -108,7 +104,6 @@ rules:
       Enable EBS encryption by default.
     references:
       - https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html
-
 
   # ────────────────────────────────────────────
   #  MONITORING

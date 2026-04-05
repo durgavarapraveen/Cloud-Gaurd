@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from scanners.AWS.aws_scanner import collect_all
 from engine.loader.aws_loader import load_policies
 from engine.checker.aws_checker import run_checks, Status
+from yaml_loader.yaml_loader import get_policies
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 # CORE VALIDATION ENGINE
 # ──────────────────────────────────────────────
 
-def validate_aws(
+async def validate_aws(
         regions=None,
         services=None,
         severities=None
@@ -31,7 +32,10 @@ def validate_aws(
             ]
 
         # Load rules
-        rules = load_policies()
+        # rules = load_policies()
+        mongo_docs = await get_policies()
+
+        rules = flatten_mongo_rules(mongo_docs)
 
         # Filter rules by service
         if services:
@@ -114,9 +118,9 @@ def validate_aws(
 # SUMMARY ONLY
 # ──────────────────────────────────────────────
 
-def get_summary(regions=None):
+async def get_summary(regions=None):
 
-    results = validate_aws(
+    results = await validate_aws(
         regions=regions
     )
 
@@ -140,9 +144,9 @@ def get_summary(regions=None):
 # FAILED FINDINGS
 # ──────────────────────────────────────────────
 
-def get_failed_findings(regions=None):
+async def get_failed_findings(regions=None):
 
-    results = validate_aws(
+    results = await validate_aws(
         regions=regions
     )
 
@@ -179,12 +183,12 @@ def get_failed_findings(regions=None):
 # FILTER BY SEVERITY
 # ──────────────────────────────────────────────
 
-def get_findings_by_severity(
+async def get_findings_by_severity(
         severity,
         regions=None
 ):
 
-    results = validate_aws(
+    results = await validate_aws(
         regions=regions
     )
 
@@ -226,12 +230,12 @@ def get_findings_by_severity(
 # FILTER BY SERVICE
 # ──────────────────────────────────────────────
 
-def get_findings_by_service(
+async def get_findings_by_service(
         service,
         regions=None
 ):
 
-    results = validate_aws(
+    results = await validate_aws(
         regions=regions
     )
 
@@ -366,3 +370,25 @@ def export_csv(
         logger.error(e)
 
         return False
+    
+    
+def flatten_mongo_rules(docs):
+
+    rules = []
+
+    for doc in docs:
+
+        provider = doc.get("provider")
+        service = doc.get("service")
+
+        yaml_data = doc.get("data", {})
+
+        for rule in yaml_data.get("rules", []):
+
+            rule["provider"] = provider
+            rule["service"] = service
+            rule["_source_file"] = f"mongo:{doc['_id']}"
+
+            rules.append(rule)
+
+    return rules
