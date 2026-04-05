@@ -1,0 +1,241 @@
+# ──────────────────────────────────────────────────────────────
+#  CloudGuard — S3 Policy Rules
+#  Source : CIS Amazon Web Services Foundations Benchmark v2.0
+#  Service: Amazon S3
+#
+#  How check.path works:
+#    The path is a JMESPath expression evaluated against the raw
+#    resource JSON returned by aws_collector.py.
+#    Example: encryption.Rules[0].ApplyServerSideEncryptionByDefault.SSEAlgorithm
+#    resolves to that nested key inside the resource dict.
+#
+#  Operators supported (implemented in checker.py):
+#    exists        — field is present and not null
+#    not_exists    — field is absent or null
+#    equals        — field value == check.value
+#    not_equals    — field value != check.value
+#    is_true       — field is boolean true
+#    is_false      — field is boolean false
+#    contains      — list or string contains check.value
+#    not_contains  — list or string does not contain check.value
+#    contains_key  — list of dicts has an item where Key == check.value
+# ──────────────────────────────────────────────────────────────
+
+rules:
+
+  # ────────────────────────────────────────────
+  #  ENCRYPTION
+  # ────────────────────────────────────────────
+
+  - id: CIS-S3-01
+    title: "S3 bucket server-side encryption must be enabled"
+    description: >
+      Enabling server-side encryption (SSE) ensures that all objects stored
+      in the bucket are encrypted at rest. AWS supports SSE-S3 (AES-256)
+      and SSE-KMS. CIS requires at minimum SSE-S3.
+    severity: HIGH
+    service: s3
+    resource_type: s3_bucket
+    cis_reference: "CIS AWS Foundations Benchmark v2.0 — 2.1.1"
+    check:
+      path: "encryption.Rules[0].ApplyServerSideEncryptionByDefault.SSEAlgorithm"
+      operator: exists
+    remediation: >
+      Go to S3 Console → select the bucket → Properties tab →
+      Default encryption → Edit → Enable → Select SSE-S3 (AES-256)
+      or SSE-KMS → Save changes.
+    references:
+      - https://docs.aws.amazon.com/AmazonS3/latest/userguide/default-bucket-encryption.html
+      - https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingServerSideEncryption.html
+
+  - id: CIS-S3-02
+    title: "S3 bucket encryption must use AES-256 or aws:kms"
+    description: >
+      Verifies that the encryption algorithm in use is one of the two
+      AWS-supported SSE algorithms. Any other value (or a misconfigured
+      value) indicates a problem with the encryption setup.
+    severity: HIGH
+    service: s3
+    resource_type: s3_bucket
+    cis_reference: "CIS AWS Foundations Benchmark v2.0 — 2.1.1"
+    check:
+      path: "encryption.Rules[0].ApplyServerSideEncryptionByDefault.SSEAlgorithm"
+      operator: contains
+      value: "AES256"        # change to aws:kms if your company mandates KMS
+    remediation: >
+      Go to S3 Console → select the bucket → Properties tab →
+      Default encryption → Edit → Select AES-256 or AWS-KMS → Save.
+    references:
+      - https://docs.aws.amazon.com/AmazonS3/latest/userguide/default-bucket-encryption.html
+
+  # ────────────────────────────────────────────
+  #  PUBLIC ACCESS
+  # ────────────────────────────────────────────
+
+  - id: CIS-S3-03
+    title: "S3 bucket must block public ACLs"
+    description: >
+      BlockPublicAcls prevents new public ACLs from being set on the bucket
+      and ignores any existing public ACLs. This is one of four settings in
+      the S3 Block Public Access configuration.
+    severity: CRITICAL
+    service: s3
+    resource_type: s3_bucket
+    cis_reference: "CIS AWS Foundations Benchmark v2.0 — 2.1.5.1"
+    check:
+      path: "public_access_block.BlockPublicAcls"
+      operator: is_true
+    remediation: >
+      Go to S3 Console → select the bucket → Permissions tab →
+      Block public access → Edit → tick "Block all public access" → Save.
+      Or enable each of the four settings individually.
+    references:
+      - https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html
+
+  - id: CIS-S3-04
+    title: "S3 bucket must ignore public ACLs"
+    description: >
+      IgnorePublicAcls causes S3 to ignore all public ACLs on the bucket
+      and the objects it contains, even if they were set before this config
+      was enabled.
+    severity: CRITICAL
+    service: s3
+    resource_type: s3_bucket
+    cis_reference: "CIS AWS Foundations Benchmark v2.0 — 2.1.5.2"
+    check:
+      path: "public_access_block.IgnorePublicAcls"
+      operator: is_true
+    remediation: >
+      Go to S3 Console → select the bucket → Permissions tab →
+      Block public access → Edit → tick "Ignore public ACLs" → Save.
+    references:
+      - https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html
+
+  - id: CIS-S3-05
+    title: "S3 bucket must block public bucket policies"
+    description: >
+      BlockPublicPolicy prevents new bucket policies that grant public access
+      from being PUT on the bucket. Rejects any policy that would make
+      the bucket or objects publicly accessible.
+    severity: CRITICAL
+    service: s3
+    resource_type: s3_bucket
+    cis_reference: "CIS AWS Foundations Benchmark v2.0 — 2.1.5.3"
+    check:
+      path: "public_access_block.BlockPublicPolicy"
+      operator: is_true
+    remediation: >
+      Go to S3 Console → select the bucket → Permissions tab →
+      Block public access → Edit → tick "Block public bucket policies" → Save.
+    references:
+      - https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html
+
+  - id: CIS-S3-06
+    title: "S3 bucket must restrict public bucket policies"
+    description: >
+      RestrictPublicBuckets restricts access to a bucket with a public policy
+      to only AWS services and authorized users within the bucket owner's account.
+      All cross-account and anonymous access is blocked even if a public policy exists.
+    severity: CRITICAL
+    service: s3
+    resource_type: s3_bucket
+    cis_reference: "CIS AWS Foundations Benchmark v2.0 — 2.1.5.4"
+    check:
+      path: "public_access_block.RestrictPublicBuckets"
+      operator: is_true
+    remediation: >
+      Go to S3 Console → select the bucket → Permissions tab →
+      Block public access → Edit → tick "Restrict public bucket policies" → Save.
+    references:
+      - https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html
+
+  # ────────────────────────────────────────────
+  #  VERSIONING
+  # ────────────────────────────────────────────
+
+  - id: CIS-S3-07
+    title: "S3 bucket versioning must be enabled"
+    description: >
+      Versioning preserves, retrieves, and restores every version of every
+      object stored in the bucket. It protects against accidental deletion
+      and overwrites, and is required by most data protection frameworks.
+    severity: MEDIUM
+    service: s3
+    resource_type: s3_bucket
+    cis_reference: "CIS AWS Foundations Benchmark v2.0 — 2.1.3"
+    check:
+      path: "versioning.Status"
+      operator: equals
+      value: "Enabled"
+    remediation: >
+      Go to S3 Console → select the bucket → Properties tab →
+      Bucket Versioning → Edit → Enable → Save changes.
+    references:
+      - https://docs.aws.amazon.com/AmazonS3/latest/userguide/Versioning.html
+
+  - id: CIS-S3-08
+    title: "S3 bucket versioning must not be suspended"
+    description: >
+      A suspended versioning state means versioning was previously enabled
+      but has been turned off. New objects will not be versioned.
+      This is different from versioning never being enabled.
+    severity: MEDIUM
+    service: s3
+    resource_type: s3_bucket
+    cis_reference: "CIS AWS Foundations Benchmark v2.0 — 2.1.3"
+    check:
+      path: "versioning.Status"
+      operator: not_equals
+      value: "Suspended"
+    remediation: >
+      Go to S3 Console → select the bucket → Properties tab →
+      Bucket Versioning → Edit → Enable → Save changes.
+      Note: once versioning is enabled, it cannot be fully disabled — only suspended.
+    references:
+      - https://docs.aws.amazon.com/AmazonS3/latest/userguide/Versioning.html
+
+  # ────────────────────────────────────────────
+  #  LOGGING
+  # ────────────────────────────────────────────
+
+  - id: CIS-S3-09
+    title: "S3 bucket access logging must be enabled"
+    description: >
+      Server access logging provides detailed records of requests made to
+      the bucket. Required for security auditing, access pattern analysis,
+      and incident investigation. CIS recommends enabling for all buckets.
+    severity: MEDIUM
+    service: s3
+    resource_type: s3_bucket
+    cis_reference: "CIS AWS Foundations Benchmark v2.0 — 2.1.2"
+    check:
+      path: "logging"
+      operator: exists
+    remediation: >
+      Go to S3 Console → select the bucket → Properties tab →
+      Server access logging → Edit → Enable → specify a target bucket
+      for the logs (use a dedicated logging bucket) → Save changes.
+    references:
+      - https://docs.aws.amazon.com/AmazonS3/latest/userguide/ServerLogs.html
+
+  # ────────────────────────────────────────────
+  #  TAGS  (custom company rule — not CIS)
+  # ────────────────────────────────────────────
+
+  - id: CUSTOM-S3-01
+    title: "S3 bucket must have at least one tag"
+    description: >
+      All S3 buckets must be tagged for cost allocation, ownership tracking,
+      and compliance reporting. Untagged buckets cannot be attributed to a
+      team or project and make cost management impossible.
+    severity: LOW
+    service: s3
+    resource_type: s3_bucket
+    cis_reference: "Internal Policy — Tagging Standard v1.0"
+    check:
+      path: "tags"
+      operator: exists
+    remediation: >
+      Go to S3 Console → select the bucket → Properties tab →
+      Tags → Edit → Add tag → at minimum add: Environment, Owner, Project.
+    references: []
