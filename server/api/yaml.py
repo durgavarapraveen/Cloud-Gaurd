@@ -5,7 +5,9 @@ from yaml_loader.yaml_loader import (
     store_yaml,
     get_policies,
     get_policy_by_provider,
-    delete_policy
+    delete_policy,
+    get_policy_by_id,
+    edit_policy_by_id
 )
 
 router = APIRouter(
@@ -42,5 +44,23 @@ async def delete_yaml_policy(document_id: str):
     try:
         await delete_policy(document_id)
         return {"message": "Policy deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.get("/policy/{document_id}")
+async def get_yaml_policy(document_id: str):
+    try:
+        policy = await get_policy_by_id(document_id)
+        if not policy:
+            raise HTTPException(status_code=404, detail="Policy not found")
+        return {"policy": policy}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.put("/policy/{document_id}")
+async def edit_yaml_policy(document_id: str, request: YAMLUploadRequest):
+    try:
+        updated_id = await edit_policy_by_id(document_id, request.provider, request.service, request.yaml_content)
+        return {"message": "Policy updated successfully", "id": updated_id}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

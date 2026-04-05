@@ -5,7 +5,6 @@ const BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 export type Severity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
 export type Status = "PASS" | "FAIL" | "ERROR" | "SKIP";
 
-export const serviceProvider = ["AWS", "AZURE", "GCP"] as const;
 export const awsServices = [
   "EC2",
   "S3",
@@ -16,41 +15,26 @@ export const awsServices = [
   "CloudTrail",
   "CloudWatch",
   "EKS",
-  "SQS",
-  "SNS",
-  "DynamoDB",
-  "CloudFormation",
-  "CloudFront",
 ] as const;
 
 export const azureServices = [
   "Virtual Machines",
-  "Blob Storage",
+  "Storage Accounts",
   "Azure Active Directory",
-  "Azure SQL Database",
-  "Azure Functions",
+  "SQL Database",
+  "Functions",
   "Virtual Network",
-  "Azure Monitor",
-  "Azure Kubernetes Service",
-  "Azure Service Bus",
-  "Azure Cosmos DB",
-  "Azure Resource Manager",
-  "Azure CDN",
+  "Monitor",
 ] as const;
 
 export const googleCloudServices = [
   "Compute Engine",
   "Cloud Storage",
-  "Identity and Access Management (IAM)",
+  "Identity and Access Management",
   "Cloud SQL",
   "Cloud Functions",
-  "Virtual Private Cloud (VPC)",
-  "Cloud Monitoring",
-  "Google Kubernetes Engine (GKE)",
-  "Cloud Pub/Sub",
-  "Cloud Spanner",
-  "Cloud Deployment Manager",
-  "Cloud CDN",
+  "Virtual Private Cloud",
+  "Cloud Logging",
 ] as const;
 
 export interface Finding {
@@ -92,10 +76,12 @@ export interface ScanResult {
 }
 
 export interface Rule {
+  _id: string;
   id: string;
   title: string;
   severity: Severity;
   service: string;
+  provider?: string;
   resource_type: string;
   description?: string;
   remediation?: string;
@@ -290,5 +276,40 @@ export const yamlApi = {
     });
     if (!res.ok)
       throw new Error(`YAML policy creation failed: ${res.statusText}`);
+  },
+
+  deletePolicy: async (id: string): Promise<void> => {
+    const res = await fetch(`${BASE}/yaml/policies/${id}`, {
+      method: "DELETE",
+    });
+    if (!res.ok)
+      throw new Error(`YAML policy deletion failed: ${res.statusText}`);
+  },
+
+  getPolicyById: async (id: string): Promise<any> => {
+    const res = await fetch(`${BASE}/yaml/policy/${id}`);
+
+    if (!res.ok)
+      throw new Error(`YAML policy fetch by ID failed: ${res.statusText}`);
+    return res.json();
+  },
+
+  updatePolicy: async (
+    id: string,
+    provider: string,
+    service: string,
+    yamlContent: string,
+  ): Promise<void> => {
+    const res = await fetch(`${BASE}/yaml/policy/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        provider,
+        service,
+        yaml_content: yamlContent,
+      }),
+    });
+    if (!res.ok)
+      throw new Error(`YAML policy update failed: ${res.statusText}`);
   },
 };

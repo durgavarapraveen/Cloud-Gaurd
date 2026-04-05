@@ -17,15 +17,6 @@ async def store_yaml(provider: str, service: str, yaml_content: str):
         "data": data,
     }
     
-    # check if a document with the same provider and service already exists
-    existing_doc = await db["resources"].find_one({"provider": provider, "service": service})
-    if existing_doc:
-        # update the existing document
-        await db["resources"].update_one(
-            {"_id": existing_doc["_id"]},
-            {"$set": {"data": data}}
-        )
-        return str(existing_doc["_id"])
 
     result = await db["resources"].insert_one(document)
     return str(result.inserted_id)
@@ -60,3 +51,25 @@ async def get_policy_by_provider(provider: str = None):
 async def delete_policy(document_id: str):
     result = await db["resources"].delete_one({"_id": ObjectId(document_id)})
     return result.deleted_count > 0
+
+
+async def get_policy_by_id(document_id: str):
+    doc = await db["resources"].find_one({"_id": ObjectId(document_id)})
+    if doc:
+        doc["_id"] = str(doc["_id"])
+    return doc
+
+async def edit_policy_by_id(document_id: str, provider: str, service: str, yaml_content: str):
+    try:
+        data = yaml.safe_load(yaml_content)
+    except yaml.YAMLError as e:
+        raise ValueError(f"Invalid YAML content: {str(e)}")
+
+    update_doc = {
+        "provider": provider,
+        "service": service,
+        "data": data,
+    }
+
+    result = await db["resources"].update_one({"_id": ObjectId(document_id)}, {"$set": update_doc})
+    return result.modified_count > 0
