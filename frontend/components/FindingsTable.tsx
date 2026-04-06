@@ -51,7 +51,7 @@ export default function FindingsTable({
         {/* Filters */}
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           {/* Status */}
-          {["FAIL", "PASS", "ALL"].map((s) => (
+          {["FAIL", "PASS", "ERROR", "ALL"].map((s) => (
             <button
               key={s}
               onClick={() => setFilterStatus(s)}
@@ -174,7 +174,7 @@ export default function FindingsTable({
                     className="px-4 py-2.5 text-slate-400 max-w-[200px] truncate font-mono text-[11px]"
                     title={f.resource_id}
                   >
-                    {f.resource_id}
+                    {f.resource_name ? `${f.resource_name}` : f.resource_id}
                   </td>
                   <td className="px-4 py-2.5 text-slate-500 uppercase text-[10px] tracking-wider font-mono">
                     {f.service}

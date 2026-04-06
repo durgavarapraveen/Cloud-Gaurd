@@ -234,12 +234,10 @@ def run_check(resource, rule):
     operator_key = check_block.get("operator")
     expected     = check_block.get("value")  # optional — not all operators need it
     
-    print(f"Running check {rule.get('id')} against resource {resource.get('resource_id')} with operator {operator_key} and path {path}*********************************************************************88")
 
     # Resolve the path against the resource using JMESPath
     try:
         actual_value = resolve_path(resource, path)
-        print(f"Resolved path {path} to actual value: {actual_value}%%%%%%%%%%%%%%%%%%%%%%%%%%%%5")
     except Exception as e:
         logger.error(
             f"[checker] Path resolution failed — "
@@ -256,7 +254,6 @@ def run_check(resource, rule):
         return _make_finding(resource, rule, Status.ERROR, actual_value=actual_value)
 
     # Run the operator — wrap in try/except so one bad resource never crashes the scan
-    print(f"Applying operator {operator_key} with actual value {actual_value} and expected value {expected}###########################################################")
     try:
         passed = operator_fn(actual_value, expected)
     except Exception as e:

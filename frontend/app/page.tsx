@@ -18,6 +18,7 @@ export default function DashboardPage() {
     setError(null);
     try {
       const result = await awsApi.scan();
+      console.log("Scan result:", result);
       setData(result);
       setTab("overview");
     } catch (e: any) {

@@ -4,7 +4,6 @@ import logging
 from datetime import datetime, timezone
 
 from scanners.AWS.aws_scanner import collect_all
-from engine.loader.aws_loader import load_policies
 from engine.checker.aws_checker import run_checks, Status
 from yaml_loader.yaml_loader import get_policies
 
@@ -20,9 +19,7 @@ async def validate_aws(
         services=None,
         severities=None
 ):
-
     try:
-
         if not regions:
             regions = [
                 os.getenv(
@@ -30,24 +27,18 @@ async def validate_aws(
                     "ap-south-1"
                 )
             ]
-
         # Load rules
         # rules = load_policies()
         mongo_docs = await get_policies()
-
         rules = flatten_mongo_rules(mongo_docs)
 
         # Filter rules by service
         if services:
-
             rules = [
-
                 r for r in rules
-
                 if r.get("service") in services
-
             ]
-
+            
         # Collect AWS resources
         resources = collect_all(
             regions=regions
@@ -66,32 +57,24 @@ async def validate_aws(
 
         # Apply severity filter
         if severities:
-
             findings = [
-
                 f for f in findings
-
                 if f.get("severity") in severities
-
             ]
 
         return {
-
             "success": True,
-
             "scan_time":
                 datetime.now(
                     timezone.utc
                 ).isoformat(),
-
             "scan_metadata":
                 resources.get(
                     "scan_metadata",
                     {}
                 ),
-
             "summary":
-                results.get(
+                results.get(    
                     "summary",
                     {}
                 ),

@@ -1,10 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { awsScannerApi, awsApi } from "@/lib/api";
+import { awsScannerApi } from "@/lib/api";
 
 const CLOUD_PROVIDERS = {
-  AWS: ["s3", "ec2", "rds", "iam"],
+  AWS: [
+    "s3",
+    "ec2",
+    "rds",
+    "iam",
+    "acm",
+    "ecs",
+    "efs",
+    "ebs",
+    "ram",
+    "privatelink",
+    "kms",
+    "ecr",
+    "ecs",
+    "elasticache",
+    "route53",
+    "transitGateway",
+  ],
   Azure: ["vm", "storage", "sql", "ad"],
   GCP: ["compute", "storage", "sql", "iam"],
 };
@@ -278,7 +295,7 @@ export default function ResourcesPage() {
                     <div className="flex items-center gap-3">
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/40 flex-shrink-0" />
                       <div className="font-mono text-slate-300 truncate">
-                        {r.resource_id}
+                        {r.resource_name || r.resource_id}
                       </div>
                       <div className="ml-auto text-[10px] text-slate-600 uppercase font-mono flex-shrink-0">
                         {r.region}

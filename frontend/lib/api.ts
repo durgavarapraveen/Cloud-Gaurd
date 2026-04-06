@@ -15,6 +15,17 @@ export const awsServices = [
   "CloudTrail",
   "CloudWatch",
   "EKS",
+  "ECS",
+  "EBS",
+  "EFS",
+  "ACM",
+  "RAM",
+  "PrivateLink",
+  "KMS",
+  "ECR",
+  "Elasticache",
+  "Route53",
+  "TransitGateway",
 ] as const;
 
 export const azureServices = [

@@ -1,6 +1,7 @@
 import boto3
 import os
 import logging
+from functools import wraps
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -42,3 +43,10 @@ def paginate(client, method, result_key, **kwargs):
     except Exception as e:
         logger.warning(f"Pagination failed for {method}: {e}")
         return []
+    
+    
+def my_wrapper(func):
+    @wraps(func)
+    def inner(*args, **kwargs):
+        return func(*args, **kwargs)
+    return inner

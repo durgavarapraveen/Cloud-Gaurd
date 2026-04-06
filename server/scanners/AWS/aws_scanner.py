@@ -18,6 +18,21 @@ from scanners.AWS.Individual_resources.s3 import scan_s3
 from scanners.AWS.Individual_resources.ec2 import scan_ec2
 from scanners.AWS.Individual_resources.iam import scan_iam
 
+# from scanners.AWS.Individual_resources.awslb import scan_lb
+# from scanners.AWS.Individual_resources.awssecretManager import scan_secret_manager
+from scanners.AWS.Individual_resources.awsacm import scan_acm
+from scanners.AWS.Individual_resources.efs import scan_efs
+from scanners.AWS.Individual_resources.ebs import scan_ebs
+from scanners.AWS.Individual_resources.resourceAccessManager import scan_ram
+from scanners.AWS.Individual_resources.privateLink import scan_privatelink
+from scanners.AWS.Individual_resources.awskms import scan_kms
+from scanners.AWS.Individual_resources.ecr import scan_ecr
+from scanners.AWS.Individual_resources.ecs import scan_ecs
+from scanners.AWS.Individual_resources.elasticCache import scan_elasticache
+from scanners.AWS.Individual_resources.route53 import scan_route53
+from scanners.AWS.Individual_resources.transitGateway import scan_transit_gateway
+
+
 load_dotenv()
 
 logger = logging.getLogger(__name__)
@@ -26,6 +41,8 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────
 # SESSION
 # ─────────────────────────────────────────────
+
+services_all = ["s3", "iam", "ec2", "rds", "acm", "efs", "ebs", "ram", "privatelink", "kms", "ecr", "ecs", "elasticache", "route53", "transitGateway"]
 
 def get_session():
     profile = os.getenv("AWS_PROFILE", "cloudguard-scanner")
@@ -48,7 +65,7 @@ def collect_all(regions=None, services=None):
         regions = [os.getenv("AWS_DEFAULT_REGION", "ap-south-1")]
         
     if services is None or "ALL" in services:
-        services = ["s3", "iam", "ec2", "rds"]
+        services = services_all
 
     session = get_session()
 
@@ -66,6 +83,9 @@ def collect_all(regions=None, services=None):
         tasks.append(("s3", scan_s3, (session,)))
     if "iam" in services:
         tasks.append(("iam", scan_iam, (session,)))
+        
+    
+        
 
     # Regional services
     for region in regions:
@@ -73,6 +93,40 @@ def collect_all(regions=None, services=None):
             tasks.append((f"ec2_{region}", scan_ec2, (session, region)))
         if "rds" in services:
             tasks.append((f"rds_{region}", scan_rds, (session, region)))
+        if "ecr" in services:
+            tasks.append((f"ecr_{region}", scan_ecr, (session, region)))
+        if "acm" in services:
+            tasks.append((f"acm_{region}", scan_acm, (session, region)))
+        
+        if "efs" in services:
+            tasks.append((f"efs_{region}", scan_efs, (session, region)))
+            
+        if "ebs" in services:
+            tasks.append((f"ebs_{region}", scan_ebs, (session, region)))
+            
+        if "ram" in services:
+            tasks.append((f"ram_{region}", scan_ram, (session, region)))
+            
+        if "privatelink" in services:
+            tasks.append((f"privatelink_{region}", scan_privatelink, (session, region)))
+            
+        if "kms" in services:
+            tasks.append((f"kms_{region}", scan_kms, (session, region)))
+            
+        
+        if "ecs" in services:
+            tasks.append((f"ecs_{region}", scan_ecs, (session, region)))
+            
+        if "elasticache" in services:
+            tasks.append((f"elasticache_{region}", scan_elasticache, (session, region)))
+            
+        if "route53" in services:
+            tasks.append((f"route53_{region}", scan_route53, (session, region)))
+            
+        if "transitGateway" in services:
+            tasks.append((f"transitGateway_{region}", scan_transit_gateway, (session, region)))
+                
+        
 
     raw_results = {}
 
@@ -102,6 +156,28 @@ def collect_all(regions=None, services=None):
             merged["ec2"] += raw_results.get(f"ec2_{region}", [])
         if "rds" in services:
             merged["rds"] += raw_results.get(f"rds_{region}", [])
+        if "ecr" in services:
+            merged["ecr"] += raw_results.get(f"ecr_{region}", [])
+        if "acm" in services:
+            merged["acm"] += raw_results.get(f"acm_{region}", [])
+        if "efs" in services:
+            merged["efs"] += raw_results.get(f"efs_{region}", [])
+        if "ebs" in services:
+            merged["ebs"] += raw_results.get(f"ebs_{region}", [])
+        if "ram" in services:
+            merged["ram"] += raw_results.get(f"ram_{region}", [])
+        if "privatelink" in services:
+            merged["privatelink"] += raw_results.get(f"privatelink_{region}", [])
+        if "kms" in services:
+            merged["kms"] += raw_results.get(f"kms_{region}", [])
+        if "ecs" in services:
+            merged["ecs"] += raw_results.get(f"ecs_{region}", [])
+        if "elasticache" in services:
+            merged["elasticache"] += raw_results.get(f"elasticache_{region}", [])
+        if "route53" in services:
+            merged["route53"] += raw_results.get(f"route53_{region}", [])
+        if "transitGateway" in services:
+            merged["transitGateway"] += raw_results.get(f"transitGateway_{region}", [])
 
     # Summary
     by_service = {svc: len(merged[svc]) for svc in merged if svc in services}
